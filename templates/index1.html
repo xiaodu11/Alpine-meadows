@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高原百草库 - 高原植物智能识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-dark: #357abd;
+            --secondary-color: #2c3e50;
+            --light-gray: #f5f8fa;
+            --card-shadow: 0 4px 20px rgba(74, 144, 226, 0.15);
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-gray);
+        }
+        .auth-form {
+            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .form-control {
+            transition: border-color 0.3s, box-shadow 0.3s;
+            border: 1px solid #ddd;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            outline: none;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .plant-card img {
+            height: 180px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar fixed w-full bg-white z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-leaf text-2xl text-blue-500 mr-2"></i>
+                        <span class="text-xl font-bold text-secondary-color">高原百草库</span>
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <a href="#plant-recognition" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-camera mr-1"></i>植物识别
+                        </a>
+                        <a href="#info-query" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-search mr-1"></i>信息查询
+                        </a>
+                        <a href="#recommendations" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-tags mr-1"></i>智能推荐
+                        </a>
+                        <a href="#user-center" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-user mr-1"></i>个人中心
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span id="user-info" class="text-gray-600 mr-4 hidden md:inline-block">欢迎, {{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <!-- 欢迎信息 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8 card-hover">
+            <h2 class="text-2xl font-bold text-secondary-color mb-2">欢迎使用高原百草库</h2>
+            <p class="text-gray-600">本系统基于改进YOLOv11算法，为您提供高原植物智能识别、信息查询及个性化推荐服务，助力科研、教育与生态保护工作。</p>
+        </div>
+
+        <!-- 核心功能卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- 植物识别卡片 -->
+            <div class="bg-white rounded-lg shadow p-6 card-hover">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-camera text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-secondary-color">植物识别</h3>
+                </div>
+                <p class="text-gray-600 mb-4">上传植物图片，系统将利用改进YOLOv11算法快速识别种类，返回形态特征、生长环境等专业信息，单张图像处理时间<0.4秒。</p>
+                <button id="plant-recognition-btn" class="btn-primary w-full py-2 rounded-md font-medium">
+                    <i class="fas fa-image mr-2"></i>立即识别
+                </button>
+            </div>
+
+            <!-- 信息查询卡片 -->
+            <div class="bg-white rounded-lg shadow p-6 card-hover">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-search text-green-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-secondary-color">信息查询</h3>
+                </div>
+                <p class="text-gray-600 mb-4">支持按植物名称、科属、产地等关键词查询，数据库收录高原特色植物详细信息，包括形态特征、生态习性、分布区域等。</p>
+                <button id="info-query-btn" class="btn-primary w-full py-2 rounded-md font-medium">
+                    <i class="fas fa-book mr-2"></i>查询信息
+                </button>
+            </div>
+
+            <!-- 智能推荐卡片 -->
+            <div class="bg-white rounded-lg shadow p-6 card-hover">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-tags text-purple-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-secondary-color">智能推荐</h3>
+                </div>
+                <p class="text-gray-600 mb-4">系统根据您的查询历史和植物学特征，智能推荐相关植物信息，帮助您发现更多高原特色物种，提升科研与探索效率。</p>
+                <button id="recommendations-btn" class="btn-primary w-full py-2 rounded-md font-medium">
+                    <i class="fas fa-heart mr-2"></i>查看推荐
+                </button>
+            </div>
+        </div>
+
+        <!-- 热门植物展示 -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-secondary-color mb-6">热门高原植物</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="popular-plants">
+                <!-- 植物卡片将通过JS动态加载 -->
+                <div class="plant-card bg-white rounded-lg shadow">
+                    <img src="https://picsum.photos/seed/plant1/600/400" alt="红景天" class="w-full">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">红景天</h3>
+                        <p class="text-sm text-gray-600 mb-3">景天科 红景天属</p>
+                        <a href="#" class="text-blue-500 text-sm font-medium">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="plant-card bg-white rounded-lg shadow">
+                    <img src="https://picsum.photos/seed/plant2/600/400" alt="雪莲花" class="w-full">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">雪莲花</h3>
+                        <p class="text-sm text-gray-600 mb-3">菊科 风毛菊属</p>
+                        <a href="#" class="text-blue-500 text-sm font-medium">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="plant-card bg-white rounded-lg shadow">
+                    <img src="https://picsum.photos/seed/plant3/600/400" alt="藏麻黄" class="w-full">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">藏麻黄</h3>
+                        <p class="text-sm text-gray-600 mb-3">麻黄科 麻黄属</p>
+                        <a href="#" class="text-blue-500 text-sm font-medium">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="plant-card bg-white rounded-lg shadow">
+                    <img src="https://picsum.photos/seed/plant4/600/400" alt="高原杜鹃" class="w-full">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-1">高原杜鹃</h3>
+                        <p class="text-sm text-gray-600 mb-3">杜鹃花科 杜鹃属</p>
+                        <a href="#" class="text-blue-500 text-sm font-medium">
+                            查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center mt-8">
+            <div class="bg-white rounded-lg shadow p-6 card-hover max-w-2xl w-full">
+                <!-- 识别区域 -->
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-bold text-secondary-color mb-2">植物智能识别</h3>
+                    <p class="text-gray-600">上传植物图片，系统将自动识别并返回详细信息</p>
+                </div>
+
+                <form id="plant-identification-form" class="w-full">
+                    <div class="flex justify-center mb-4">
+                        <img id="preview-image" src="/api/placeholder-image" alt="预览图" class="w-64 h-64 object-cover border-2 border-dashed border-gray-300 rounded-lg">
+                    </div>
+                    <div class="flex justify-center mb-4">
+                        <button type="button" id="upload-btn" class="btn-primary py-2 px-4 rounded-md font-medium">
+                            <i class="fas fa-upload mr-2"></i>上传图片
+                            <input type="file" id="file-input" accept="image/*" class="hidden">
+                        </button>
+                    </div>
+                    <div class="flex justify-center">
+                        <button type="submit" class="btn-primary py-2 px-4 rounded-md font-medium" id="identify-btn">
+                            <i class="fas fa-camera mr-2"></i>开始识别
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-8" id="result-container" style="display: none;">
+                    <h4 class="text-lg font-bold text-secondary-color mb-2">识别结果</h4>
+                    <div id="result-details" class="bg-blue-50 p-4 rounded-md">
+                        <!-- 结果将通过JS动态加载 -->
+                    </div>
+                </div>
+
+                <div id="loading" class="hidden" style="margin-top: 20px;">
+                    <div class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-4 border-blue-500 border-t-transparent mr-3"></div>
+                        <span>正在识别中，请稍候...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文件上传与预览
+        document.getElementById('upload-btn').addEventListener('click', function() {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('preview-image').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 植物识别表单提交
+        document.getElementById('plant-identification-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 获取文件
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('请选择要识别的图片');
+                return;
+            }
+
+            // 显示加载动画
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('identify-btn').disabled = true;
+            document.getElementById('upload-btn').disabled = true;
+
+            // 创建 FormData 对象
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 发送 POST 请求
+            fetch('/api/plant-identification', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 显示识别结果
+                    document.getElementById('result-container').style.display = 'block';
+                    document.getElementById('result-details').innerHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold">植物名称: ${data.class_name}</h4>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">置信度: ${(data.confidence * 100).toFixed(2)}%</h4>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">科: ${data.details.科 || '未知'}</h4>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">属: ${data.details.属 || '未知'}</h4>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">分布地点: ${data.details.分布地点 || '未知'}</h4>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">外观特征: ${data.details.外观 || '未知'}</h4>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    alert(data.message || '识别失败');
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                alert('识别过程中发生错误');
+            })
+            .finally(() => {
+                // 隐藏加载动画
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('identify-btn').disabled = false;
+                document.getElementById('upload-btn').disabled = false;
+            });
+        });
+
+        // 植物卡片加载
+        fetch('/api/popular-plants')
+            .then(response => response.json())
+            .then(data => {
+                const plantsContainer = document.getElementById('popular-plants');
+                plantsContainer.innerHTML = '';
+
+                data.forEach(plant => {
+                    const plantCard = document.createElement('div');
+                    plantCard.className = 'plant-card bg-white rounded-lg shadow';
+                    plantCard.innerHTML = `
+                        <img src="${plant.image}" alt="${plant.name}" class="w-full">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-1">${plant.name}</h3>
+                            <p class="text-sm text-gray-600 mb-3">${plant.family} ${plant.genus}</p>
+                            <a href="#" class="text-blue-500 text-sm font-medium">
+                                查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    `;
+                    plantsContainer.appendChild(plantCard);
+                });
+            })
+            .catch(error => {
+                console.error('加载热门植物失败:', error);
+            });
+    </script>
+</body>
+</html>

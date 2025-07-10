@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>植物识别</title>
+    <link rel="stylesheet" href="/static/plant-identification.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-section">
+            <h1><i class="fa fa-leaf"></i> 植物智能识别系统</h1>
+
+            <div class="loader" id="loader">
+                <div class="loader-spinner"></div>
+                <p>正在分析图片，请稍候...</p>
+            </div>
+
+            <div class="file-upload">
+                <input type="file" id="imageFile" accept="image/*">
+                <label for="imageFile">
+                    <i class="fa fa-cloud-upload"></i> 选择图片
+                </label>
+                <div class="file-name" id="fileName"></div>
+
+                <!-- 图像预览区域 -->
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImage" src="" alt="图片预览">
+                </div>
+            </div>
+
+            <button id="identifyButton">
+                <i class="fa fa-search"></i> 开始识别
+            </button>
+        </div>
+
+        <div class="result-section" id="result">
+            <h2 id="resultTitle"><i class="fa fa-check-circle"></i> 识别结果</h2>
+            <div class="result-item">
+                <span><i class="fa fa-star"></i> 植物名称:</span> <span id="plantName"></span>
+            </div>
+            <div class="result-item">
+                <span><i class="fa fa-percent"></i> 置信度:</span> <span id="confidence"></span>%
+            </div>
+
+            <div class="plant-info">
+                <h3><i class="fa fa-info-circle"></i> 详细信息</h3>
+                <p><span><i class="fa fa-sitemap"></i> 科:</span> <span id="family"></span></p>
+                <p><span><i class="fa fa-object-group"></i> 属:</span> <span id="genus"></span></p>
+                <p><span><i class="fa fa-map-marker"></i> 分布地点:</span> <span id="location"></span></p>
+                <p><span><i class="fa fa-eye"></i> 外观:</span> <span id="appearance"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文件选择处理
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const fileName = document.getElementById('fileName');
+            fileName.textContent = e.target.files[0] ? e.target.files[0].name : '';
+
+            // 如果有文件，显示开始识别按钮的悬停效果
+            if (e.target.files[0]) {
+                document.getElementById('identifyButton').style.opacity = '1';
+
+                // 显示图像预览
+                const file = e.target.files[0];
+                const previewImage = document.getElementById('previewImage');
+                const imagePreview = document.getElementById('imagePreview');
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImage.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('identifyButton').style.opacity = '0.7';
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+
+        // 识别按钮点击事件
+        document.getElementById('identifyButton').addEventListener('click', function() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('请选择图片进行识别');
+                return;
+            }
+
+            // 显示加载动画，隐藏结果区域
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 调用实际的后端 API
+            fetch('/api/plant-identification1', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 处理结果数据
+                if (data.status === 'success') {
+                    const resultDiv = document.getElementById('result');
+                    const plantName = document.getElementById('plantName');
+                    const confidence = document.getElementById('confidence');
+                    const family = document.getElementById('family');
+                    const genus = document.getElementById('genus');
+                    const location = document.getElementById('location');
+                    const appearance = document.getElementById('appearance');
+
+                    plantName.textContent = data.class_name;
+                    confidence.textContent = (data.confidence * 100).toFixed(2);
+                    family.textContent = data.details.科 || '未知';
+                    genus.textContent = data.details.属 || '未知';
+                    location.textContent = data.details.分布地点 || '未知';
+                    appearance.textContent = data.details.外观 || '未知';
+
+                    // 隐藏加载动画，显示结果
+                    document.getElementById('loader').style.display = 'none';
+                    resultDiv.style.display = 'block';
+                } else {
+                    alert('识别失败: ' + data.message);
+                    document.getElementById('loader').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('服务器错误，请稍后再试');
+                document.getElementById('loader').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

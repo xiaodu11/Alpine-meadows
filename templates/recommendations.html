@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能推荐</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eaeaea;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #1a56db;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: #1a56db;
+            border-radius: 3px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: #1a56db;
+        }
+
+        /* 引导文字样式 */
+        .intro-text {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        /* 按钮样式 */
+        .primary-button {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 15px;
+            background-color: #1a56db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(26, 86, 219, 0.2);
+            text-align: center;
+        }
+
+        .primary-button:hover {
+            background-color: #0d47a1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(26, 86, 219, 0.3);
+        }
+
+        /* 推荐区域样式 */
+        .recommendations-container {
+            display: none;
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 推荐网格样式 */
+        /* 原始代码部分 */
+
+        /* 修改后代码部分 */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* 添加响应式设计 */
+        @media (max-width: 1200px) {
+            .recommendations-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .recommendations-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 植物卡片样式 */
+        .plant-card {
+            background-color: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-10px) rotateY(5deg);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .plant-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 3px solid #1a56db;
+        }
+
+        .plant-info {
+            padding: 20px;
+        }
+
+        .plant-name {
+            font-weight: 700;
+            margin-top: 0;
+            color: #1a56db;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .plant-details {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        /* 加载更多按钮样式 */
+        .load-more {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #f0f7ff;
+            color: #1a56db;
+            border: 2px solid #1a56db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .load-more:hover {
+            background-color: #e1f0ff;
+            border-color: #0d47a1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+                margin: 20px auto;
+            }
+
+            .recommendations-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .plant-image {
+                height: 150px;
+            }
+
+            .intro-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>智能推荐</h1>
+        <p class="intro-text">
+            系统将根据您的查询历史和植物学特征，为您智能推荐相关植物信息
+        </p>
+        <button class="primary-button" id="recommendButton">查看推荐</button>
+
+        <div class="recommendations-container" id="recommendationsContainer">
+            <div class="recommendations-header">
+                <h2>为您推荐</h2>
+            </div>
+            <div class="recommendations-grid" id="recommendationsGrid">
+                <!-- 推荐植物将在这里显示 -->
+            </div>
+            <button class="load-more" id="loadMoreButton">加载更多</button>
+        </div>
+    </div>
+
+    <script>
+        let page = 1;
+        let hasMoreResults = true;
+
+        document.getElementById('recommendButton').addEventListener('click', function() {
+            document.getElementById('recommendationsContainer').style.display = 'block';
+            loadRecommendations();
+        });
+
+        document.getElementById('loadMoreButton').addEventListener('click', function() {
+            if (!hasMoreResults) return;
+            page++;
+            loadRecommendations();
+        });
+
+        function loadRecommendations() {
+            // 这里使用模拟数据，实际应用中应该替换为真实的API调用
+            const mockPlants = [
+                {
+                    name: '暗紫贝母',
+                    family: '百合科',
+                    location: '四川西北部、青海东南部',
+                    image: "static/暗紫贝母.jpg"
+                },
+                {
+                    name: '百日菊',
+                    family: '菊科',
+                    location: '云南（西双版纳、蒙自等）、四川西南部',
+                    image: 'static/百日菊.jpg'
+                },
+                {
+                    name: '北方拉拉藤',
+                    family: '茜草科',
+                    location: '黑龙江、吉林、辽宁、内蒙古、河北、山西、甘肃、青海、新疆、山东、四川、西藏等省区',
+                    image: 'static/北方拉拉藤.jpg'
+                },
+                {
+                    name: '变色苦荬菜',
+                    family: '菊科',
+                    location: '黑龙江，吉林，内蒙古，河北，山西等地',
+                    image: 'static/变色苦荬菜.jpg'
+                },
+                {
+                    name: '川西小黄菊',
+                    family: '菊科',
+                    location: '中国青海西南部、四川西南部及西北部、云南西北部及西藏东部',
+                    image: 'static/川西小黄菊.jpg'
+                },
+                {
+                    name: '大丽花',
+                    family: '菊科',
+                    location: '甘肃省，辽宁省，广东省为主要栽培产地',
+                    image: 'static/大丽花.jpg'
+                },
+                {
+                    name: '淡黄香青',
+                    family: '菊科',
+                    location: '青海、甘肃、陕西、四川西部及西藏东部和南部',
+                    image: 'static/淡黄香青.jpg'
+                },
+                {
+                    name: '鹅绒藤',
+                    family: '夹竹桃科',
+                    location: '中国辽宁、河北、河南、山东、山西、陕西、宁夏、甘肃、江苏、浙江等省区',
+                    image: 'static/鹅绒藤.jpg'
+                },
+                {
+                    name: '甘肃贝母',
+                    family: '百合科',
+                    location: '中国甘肃南部、青海东部和南部和四川西部',
+                    image: 'static/甘肃贝母.jpg'
+                },
+                {
+                    name: '高原点地梅',
+                    family: '报春花科',
+                    location: '西藏东南部、四川西部、云南西北部和青海南部',
+                    image: 'static/高原点地梅.jpg'
+                },
+                {
+                    name: '褐毛垂头菊',
+                    family: '菊科',
+                    location: '西藏东北部、四川西北部、青海南部、甘肃西南部',
+                    image: 'static/褐毛垂头菊.jpg'
+                },
+                {
+                    name: '红花岩生忍冬',
+                    family: '忍冬科',
+                    location: '中国宁夏南部、甘肃西北部至南部、青海东部、四川西南部至西北部、云南西北部及西藏',
+                    image: 'static/红花岩生忍冬.jpg'
+                },
+                {
+                    name: '戟叶火绒草',
+                    family: '菊科',
+                    location: '中国陕西南部、甘肃、四川、西藏东部、云南、贵州、湖南西部',
+                    image: 'static/戟叶火绒草.jpg'
+                },
+                {
+                    name: '箭叶橐吾',
+                    family: '菊科',
+                    location: '内蒙自治区，河北省，山西省，陕西省，宁夏回族自治区，甘肃省，青海省，四川省，西藏自治区',
+                    image: 'static/箭叶橐吾.jpg'
+                },
+                {
+                    name: '苣荬菜',
+                    family: '菊科',
+                    location: '宁夏、新疆、湖北、云南、贵州等',
+                    image: 'static/苣荬菜.jpg'
+                },
+                {
+                    name: '康藏荆芥',
+                    family: '唇形科',
+                    location: '西藏东部，四川西部，青海西部，甘肃南部，陕西南部，山西及河北北部',
+                    image: 'static/康藏荆芥.jpg'
+                },
+                {
+                    name: '款冬',
+                    family: '菊科',
+                    location: '中国分布于东北、华北、华东、西北和湖北、湖南、江西、贵州、云南和西藏',
+                    image: 'static/款冬.jpg'
+                },
+                {
+                    name: '葵花大蓟',
+                    family: '菊科',
+                    location: '甘肃、青海、四川及西藏等',
+                    image: 'static/葵花大蓟.jpg'
+                },
+                {
+                    name: '拉萨狗娃花',
+                    family: '菊科',
+                    location: '西藏，锡金',
+                    image: 'static/拉萨狗娃花.jpg'
+                },
+                {
+                    name: '蓝白龙胆',
+                    family: '龙胆科',
+                    location: '中国西藏、四川、青海、甘肃、新疆',
+                    image: 'static/蓝白龙胆.jpg'
+                },
+                {
+                    name: '蓝钟花',
+                    family: '桔梗科',
+                    location: '西藏东部、云南北部、四川西部、青海南部和甘肃东南部',
+                    image: 'static/蓝钟花.jpg'
+                },
+                {
+                    name: '狸藻',
+                    family: '狸藻科',
+                    location: '黑龙江、吉林、辽宁、内蒙古、宁夏、河北、山西、陕西、甘肃、青海、新疆、山东、河南、四川（西北部）和西藏。',
+                    image: 'static/狸藻.jpg'
+                },
+                {
+                    name: '蓼子朴',
+                    family: '菊科',
+                    location: '北京、辽宁、内蒙古、河北、山西、陕西、甘肃、青海、新疆',
+                    image: 'static/蓼子朴.jpg'
+                },
+                {
+                    name: '鳞叶龙胆',
+                    family: '龙胆科',
+                    location: '西南（除西藏）、西北、华北及东北',
+                    image: 'static/鳞叶龙胆.jpg'
+                },
+                {
+                    name: '轮叶黄精',
+                    family: '天门冬科',
+                    location: '西藏（东部和南部）、云南（西北部）、四川（西部）、青海（东北部）、甘肃（东南部）、陕西（南部）、山西（西部）',
+                    image: 'static/轮叶黄精.jpg'
+                },
+                {
+                    name: '美头火绒草',
+                    family: '菊科',
+                    location: '青海东部、甘肃西部至南部、四川北部至西南部、云南西北部至北部',
+                    image: 'static/美头火绒草.jpg'
+                },
+                {
+                    name: '密生波罗花',
+                    family: '紫葳科',
+                    location: '肃南部、青海、四川西部、云南西北部、西藏',
+                    image: 'static/密生波罗花.jpg'
+                },
+                {
+                    name: '千里香杜鹃',
+                    family: '杜鹃花科',
+                    location: '甘肃、青海、四川北部及西北部',
+                    image: 'static/千里香杜鹃.jpg'
+                },
+                {
+                    name: '忍冬',
+                    family: '忍冬科',
+                    location: '除黑龙江、内蒙古、宁夏、青海、新疆、海南和西藏无自然生长外，全国各省均有分布。',
+                    image: 'static/忍冬.jpg'
+                },
+                {
+                    name: '日本毛连菜',
+                    family: '菊科',
+                    location: '黑龙江、吉林、辽宁、内蒙古、河北、山西、陕西、甘肃、青海、新疆、山东、安徽、河南、四川、贵州、云南、西藏',
+                    image: 'static/日本毛连菜.jpg'
+                },
+                {
+                    name: '乳苣',
+                    family: '菊科',
+                    location: '辽宁、内蒙古、河北、山西、陕西、甘肃、青海、新疆、河南、西藏',
+                    image: 'static/乳苣.jpg'
+                },
+                {
+                    name: '锐果鸢尾',
+                    family: '鸢尾科',
+                    location: '陕西、甘肃、青海、四川、云南、西藏',
+                    image: 'static/锐果鸢尾.jpg'
+                },
+                {
+                    name: '少花顶冰花',
+                    family: '百合科',
+                    location: '黑龙江、内蒙古、宁夏、河北、陕西、甘肃、青海和西藏',
+                    image: 'static/少花顶冰花.jpg'
+                },
+                {
+                    name: '唐菖蒲',
+                    family: '鸢尾科',
+                    location: '广东、四川、福建、吉林、辽宁、云南、上海、甘肃、江苏、深圳和河北',
+                    image: 'static/唐菖蒲.jpg'
+                },
+                {
+                    name: '天蓝韭',
+                    family: '石蒜科',
+                    location: '陕西、宁夏、甘肃、青海、西藏、四川和湖北',
+                    image: 'static/天蓝韭.jpg'
+                },
+                {
+                    name: '天山千里光',
+                    family: '菊科',
+                    location: '新疆、甘肃、内蒙、四川、西藏',
+                    image: 'static/天山千里光.jpg'
+                },
+                {
+                    name: '万寿菊',
+                    family: '菊科',
+                    location: '中国各地均有栽培',
+                    image: 'static/万寿菊.jpg'
+                },
+                {
+                    name: '微孔草',
+                    family: '紫草科',
+                    location: '陕西西南部，甘肃、青海、四川西部、云南西北部、西藏东部和南部',
+                    image: 'static/微孔草.jpg'
+                },
+                {
+                    name: '萎软紫菀',
+                    family: '菊科',
+                    location: '中国北部、西北部、西部、西南部、新疆及西藏',
+                    image: 'static/萎软紫菀.jpg'
+                },
+                {
+                    name: '莴苣',
+                    family: '菊科',
+                    location: '中国各地都有栽培',
+                    image: 'static/莴苣.jpg'
+                },
+                {
+                    name: '喜马拉雅沙参',
+                    family: '桔梗科',
+                    location: '新疆、西藏、四川、青海、甘肃',
+                    image: 'static/喜马拉雅沙参.jpg'
+                },
+                {
+                    name: '细叶假还阳参',
+                    family: '菊科',
+                    location: '北京、黑龙江、吉林、辽宁、内蒙古、河北、新疆、西藏',
+                    image: 'static/细叶假还阳参.jpg'
+                },
+                {
+                    name: '星舌紫菀',
+                    family: '菊科',
+                    location: '西藏、四川、青海、云南',
+                    image: 'static/星舌紫菀.jpg'
+                },
+                {
+                    name: '星状雪兔子',
+                    family: '菊科',
+                    location: '中国甘肃、青海、四川、云南、西藏',
+                    image: 'static/星状雪兔子.jpg'
+                },
+                {
+                    name: '旋覆花',
+                    family: '菊科',
+                    location: '中国北部、东北部、中部、东部各省，极常见，在四川、贵州、福建、广东也可见到',
+                    image: 'static/旋覆花.jpg'
+                },
+                {
+                    name: '烟草',
+                    family: '茄科',
+                    location: '中国南北各省区广为栽培',
+                    image: 'static/烟草.jpg'
+                },
+                {
+                    name: '野鸢尾',
+                    family: '鸢尾科',
+                    location: '黑龙江、吉林、辽宁、内蒙古、河北、山西、山东、河南、安徽、江苏、江西、陕西、甘肃、宁夏、青海',
+                    image: 'static/野鸢尾.jpg'
+                },
+                {
+                    name: '益母草',
+                    family: '唇形科',
+                    location: '在中国分布于全国各地',
+                    image: 'static/益母草.jpg'
+                },
+                {
+                    name: '掌裂兰',
+                    family: '兰科',
+                    location: '黑龙江、吉林、内蒙古、宁夏、甘肃、青海、新疆、四川西部和西藏东部',
+                    image: 'static/掌裂兰.jpg'
+                },
+                {
+                    name: '中国马先蒿',
+                    family: '列当科',
+                    location: '青海东北部、甘肃南部和中部、山西与河北北部',
+                    image: 'static/中国马先蒿.jpg'
+                },
+                {
+                    name: '帚状鸦葱',
+                    family: '菊科',
+                    location: '陕西、宁夏、甘肃、青海、新疆',
+                    image: 'static/帚状鸦葱.jpg'
+                },
+                {
+                    name: '蓝花楹',
+                    family: '苏木科',
+                    location: '原产南美洲，中国南方地区广泛种植',
+                    image: 'static/蓝花楹.jpg'
+                },
+                {
+                    name: '红花檵木',
+                    family: '山茶科',
+                    location: '中国湖南、湖北、广西等地',
+                    image: 'static/红花檵木.jpg'
+                },
+                {
+                    name: '银杏',
+                    family: '银杏科',
+                    location: '中国浙江、江苏、安徽等地',
+                    image: 'static/银杏.jpg'
+                },
+                {
+                    name: '紫荆',
+                    family: '豆科',
+                    location: '中国华北、华东、华南等地',
+                    image: 'static/紫荆.jpg'
+                },
+                {
+                    name: '白花泡桐',
+                    family: '泡桐科',
+                    location: '黄河流域及以南各省区均有栽培',
+                    image: 'static/白花泡桐.jpg'
+                },
+                {
+                    name: '红皮糙苏',
+                    family: '唇形科',
+                    location: '黄河流域及以南各省区均有栽培',
+                    image: 'static/红皮糙苏.jpg'
+                },
+                {
+                    name: '青荚叶',
+                    family: '冬青科',
+                    location: '黄河流域及以南各省区均有栽培',
+                    image: 'static/青荚叶.jpg'
+                }
+            ];
+
+            // 每次加载推荐前，随机打乱植物顺序
+            mockPlants.sort(() => Math.random() - 0.5);
+
+            const recommendationsGrid = document.getElementById('recommendationsGrid');
+
+            if (mockPlants.length === 0) {
+                hasMoreResults = false;
+                return;
+            }
+
+            // 清空之前的推荐内容
+            recommendationsGrid.innerHTML = '';
+
+            mockPlants.forEach(plant => {
+                const plantCard = document.createElement('div');
+                plantCard.className = 'plant-card';
+
+                const plantImage = document.createElement('img');
+                plantImage.className = 'plant-image';
+                plantImage.src = plant.image || 'https://picsum.photos/seed/plant/200/150'; // 默认图片
+                plantImage.alt = plant.name || '植物图片';
+
+                const plantInfo = document.createElement('div');
+                plantInfo.className = 'plant-info';
+
+                const plantName = document.createElement('h3');
+                plantName.className = 'plant-name';
+                plantName.textContent = plant.name;
+
+                const plantFamily = document.createElement('p');
+                plantFamily.className = 'plant-details';
+                plantFamily.textContent = `科属: ${plant.family || '未知'}`;
+
+                const plantLocation = document.createElement('p');
+                plantLocation.className = 'plant-details';
+                plantLocation.textContent = `产地: ${plant.location || '未知'}`;
+
+                plantInfo.appendChild(plantName);
+                plantInfo.appendChild(plantFamily);
+                plantInfo.appendChild(plantLocation);
+
+                plantCard.appendChild(plantImage);
+                plantCard.appendChild(plantInfo);
+                recommendationsGrid.appendChild(plantCard);
+            });
+        }
+    </script>
+</body>
+</html>

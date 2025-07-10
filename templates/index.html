@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高原百草库 - 高原植物智能识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-dark: #357abd;
+            --secondary-color: #2c3e50;
+            --light-gray: #f5f8fa;
+            --card-shadow: 0 4px 20px rgba(74, 144, 226, 0.15);
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-gray);
+        }
+        .auth-form {
+            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .form-control {
+            transition: border-color 0.3s, box-shadow 0.3s;
+            border: 1px solid #ddd;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            outline: none;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow);
+        }
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .plant-card img {
+            height: 180px;
+            object-fit: cover;
+        }
+        /* 动画样式 */
+        .animate-from-left {
+        animation: slideInFromLeft 1s forwards;
+        transform: translateX(-100%);
+        opacity: 0;
+        }
+
+        .animate-from-right {
+        animation: slideInFromRight 1s forwards;
+        transform: translateX(100%);
+        opacity: 0;
+        }
+
+        .animate-fade-in {
+        animation: fadeIn 1s forwards;
+        opacity: 0;
+        }
+
+        @keyframes slideInFromLeft {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        }
+
+        @keyframes slideInFromRight {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        }
+
+        @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar fixed w-full bg-white z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-leaf text-2xl text-blue-500 mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">高原百草库</span>
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <a href="{{ url_for('plant_identification') }}" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-camera mr-1"></i>植物识别
+                        </a>
+                        <a href="{{ url_for('info_query') }}" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-search mr-1"></i>信息查询
+                        </a>
+                        <a href="{{ url_for('smart_recommendation') }}" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-tags mr-1"></i>智能推荐
+                        </a>
+                        <a href="{{ url_for('Personal_Information') }}" class="border-transparent text-gray-500 hover:text-blue-500 hover:border-blue-300 px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fas fa-user mr-1"></i>个人中心
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span id="user-info" class="text-gray-600 mr-4 hidden md:inline-block">欢迎, {{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <!-- 欢迎信息 -->
+       <div class="bg-white rounded-lg shadow p-6 mb-8 card-hover">
+            <h2 class="text-2xl font-bold text-secondary-color mb-2 text-center">欢迎使用高原百草库</h2>
+            <p class="text-gray-600 text-center" style="font-family: 'Arial', sans-serif; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); letter-spacing: 1px;">
+                本系统基于改进YOLOv11算法，为您提供高原植物智能识别、信息查询及个性化推荐服务，助力科研、教育与生态保护工作。
+            </p>
+        </div>
+
+        <!-- 核心功能卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- 植物识别卡片 -->
+        <div class="bg-white rounded-lg shadow p-6 card-hover animate-from-left" style="animation-delay: 0.4s;">
+            <div class="flex items-center mb-4">
+            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                <i class="fas fa-camera text-blue-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-secondary-color">植物识别</h3>
+            </div>
+            <p class="text-gray-600 mb-4">上传植物图片，系统将利用改进YOLOv11算法快速识别种类，返回形态特征、生长环境等专业信息，单张图像处理时间<0.4秒。</p>
+            <a id="plant-recognition-btn" href="{{ url_for('plant_identification') }}" class="text-black-500 hover:text-black-700 font-medium flex items-center justify-center w-full py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white">
+            <i class="fas fa-image mr-2"></i>立即识别
+            </a>
+        </div>
+
+        <!-- 信息查询卡片 -->
+        <div class="bg-white rounded-lg shadow p-6 card-hover animate-fade-in" style="animation-delay: 0.5s;">
+            <div class="flex items-center mb-4">
+            <div class="bg-green-100 p-3 rounded-full mr-4">
+                <i class="fas fa-search text-green-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-secondary-color">信息查询</h3>
+            </div>
+            <p class="text-gray-600 mb-4">支持按植物名称、科属、产地等关键词查询，数据库收录高原特色植物详细信息，包括形态特征、生态习性、分布区域等。</p>
+            <a id="info-query-btn" href="{{ url_for('info_query') }}" class="text-black-500 hover:text-black-700 font-medium flex items-center justify-center w-full py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white">
+            <i class="fas fa-book mr-2"></i>查询信息
+            </a>
+        </div>
+
+        <!-- 智能推荐卡片 -->
+        <div class="bg-white rounded-lg shadow p-6 card-hover animate-from-right" style="animation-delay: 0.4s;">
+            <div class="flex items-center mb-4">
+            <div class="bg-purple-100 p-3 rounded-full mr-4">
+                <i class="fas fa-tags text-purple-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-secondary-color">智能推荐</h3>
+            </div>
+            <p class="text-gray-600 mb-4">系统根据您的查询历史和植物学特征，智能推荐相关植物信息，帮助您发现更多高原特色物种，提升科研与探索效率。</p>
+            <a id="recommendations-btn" href="{{ url_for('smart_recommendation') }}" class="text-black-500 hover:text-black-700 font-medium flex items-center justify-center w-full py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white">
+            <i class="fas fa-heart mr-2"></i>查看推荐
+            </a>
+        </div>
+        </div>
+
+        <!-- 热门植物展示 -->
+        <!-- 热门植物展示 -->
+        <!-- 热门植物展示 -->
+        <!-- 热门植物展示 -->
+<!-- 热门植物展示 -->
+<div class="mb-8 relative" style="overflow: hidden;">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">热门高原植物</h2>
+    <div id="popular-plants" class="flex transition-transform duration-500 ease-in-out" style="transform: translateX(0);">
+        <!-- 植物卡片 -->
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/暗紫贝母.jpg" alt="暗紫贝母" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">暗紫贝母</h3>
+                <p class="text-sm text-gray-600 mb-3">百合科 贝母属</p>
+                <a href="https://baike.baidu.com/item/%E6%9A%97%E7%B4%AB%E8%B4%9D%E6%AF%8D/1628903" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/百日菊.jpg" alt="百日菊" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">百日菊</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 百日草属</p>
+                <a href="https://baike.baidu.com/item/%E7%99%BE%E6%97%A5%E8%8F%8A/3116049" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/大丽花.jpg" alt="大丽花" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">大丽花</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 大丽花属</p>
+                <a href="https://baike.baidu.com/item/%E5%A4%A7%E4%B8%BD%E8%8A%B1/200399" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow" style="min-width: 25%;">
+            <img src="static/星舌紫菀.jpg" alt="星舌紫菀" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">星舌紫菀</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 紫菀属</p>
+                <a href="https://baike.baidu.com/item/%E6%98%9F%E8%88%8C%E7%B4%AB%E8%8F%80/6474012" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <!-- 重复所有卡片，实现无缝循环 -->
+         <div class="bg-white rounded-lg shadow mr-6" style="min-width: 0%;">
+            
+        </div>
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/暗紫贝母.jpg" alt="暗紫贝母" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">暗紫贝母</h3>
+                <p class="text-sm text-gray-600 mb-3">百合科 贝母属</p>
+                <a href="https://baike.baidu.com/item/%E6%9A%97%E7%B4%AB%E8%B4%9D%E6%AF%8D/1628903" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/百日菊.jpg" alt="百日菊" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">百日菊</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 百日草属</p>
+                <a href="https://baike.baidu.com/item/%E7%99%BE%E6%97%A5%E8%8F%8A/3116049" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow mr-6" style="min-width: 25%;">
+            <img src="static/大丽花.jpg" alt="大丽花" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">大丽花</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 大丽花属</p>
+                <a href="https://baike.baidu.com/item/%E5%A4%A7%E4%B8%BD%E8%8A%B1/200399" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow" style="min-width: 25%;">
+            <img src="static/星舌紫菀.jpg" alt="星舌紫菀" class="w-full h-48 object-cover" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+            <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">星舌紫菀</h3>
+                <p class="text-sm text-gray-600 mb-3">菊科 紫菀属</p>
+                <a href="https://baike.baidu.com/item/%E6%98%9F%E8%88%8C%E7%B4%AB%E8%8F%80/6474012" class="text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center">
+                    查看详情 <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+        
+    </div>
+    <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('popular-plants');
+    let isPaused = false;
+    let currentTransform = 0;
+
+    function autoSlide() {
+        if (!isPaused) {
+            currentTransform -= 1; // 每次移动1像素
+            if (currentTransform <= -slider.scrollWidth + slider.offsetWidth) {
+                // 当滑动到末尾时，重置到起始位置，留一点空隙
+                currentTransform = 0;
+            }
+            slider.style.transform = `translateX(${currentTransform}px)`;
+        }
+    }
+
+    let interval = setInterval(autoSlide, 100); // 每10毫秒更新一次位置
+
+    const sliderContainer = document.querySelector('.mb-8.relative');
+    sliderContainer.addEventListener('mouseenter', () => {
+        isPaused = true; // 设置暂停标志
+    });
+
+    sliderContainer.addEventListener('mouseleave', () => {
+        isPaused = false; // 清除暂停标志
+    });
+});
+</script>
+</body>
+</html>
