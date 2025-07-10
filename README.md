@@ -13,4 +13,9 @@ yolo_web:运行文件<br>
 gunicorn -w 2 -b 0.0.0.0:80 yolo_web:app
 </pre>
 
+## 效果
+![Uploading image.png…]<br>
+![image](https://github.com/user-attachments/assets/f77797b9-42ec-4209-bb4a-bc084e164dea)<br>
+
+
 
