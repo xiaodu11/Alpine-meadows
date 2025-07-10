@@ -3,6 +3,9 @@
 best.pt:yolo11训练的最优模型（100epoch）<br>
 high_grass.sql:数据库，导入修改即可<br>
 yolo_web:运行文件<br>
+数据均为：网络爬取<br>
+要获取更多数据，推荐:
+https://ppbc.iplant.cn/ 获取资源
 
 ## 运行注意：
 **安装深度学习环境：python>=3.6 conda>=2.2**<br>
