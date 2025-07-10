@@ -5,7 +5,7 @@ high_grass.sql:数据库，导入修改即可<br>
 yolo_web:运行文件<br>
 数据均为：网络爬取<br>
 要获取更多数据，推荐:
-https://ppbc.iplant.cn/ 获取资源
+https://ppbc.iplant.cn/ 获取资源<br>
 
 ## 运行注意：
 **安装深度学习环境：python>=3.6 conda>=2.2**<br>
@@ -14,7 +14,10 @@ https://ppbc.iplant.cn/ 获取资源
 服务器运行代码：<br>
 <pre>
 gunicorn -w 2 -b 0.0.0.0:80 yolo_web:app
-</pre>
+</pre><br>
+
+**yolo_ui.py**为PyQT5库所写代码，运行生成一个页面<br>
+**推荐使用pyinstall或者其他打包软件进行打包**
 
 ## 效果
 **登录界面：**
