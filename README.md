@@ -8,5 +8,11 @@ yolo_web:运行文件<br>
 **安装深度学习环境：python>=3.6 conda>=2.2**<br>
 **根据python文件安装相关库**<br>
 自己电脑运行代码：直接运行即可<br>
-服务器运行代码：gunicorn -w 2 -b 0.0.0.0:80 yolo_web:app<br>
+服务器运行代码：<br>
+<pre>
+```bash
+gunicorn -w 2 -b 0.0.0.0:80 yolo_web:app<br>
+```
+</pre>
+
 
