@@ -7,7 +7,7 @@ yolo_web:运行文件<br>
 要获取更多数据，推荐:
 https://ppbc.iplant.cn/ 获取资源<br>
 
-## 运行注意：
+## 运行注意
 **安装深度学习环境：python>=3.6 conda>=2.2**<br>
 **根据python文件安装相关库**<br>
 自己电脑运行代码：直接运行即可<br>
