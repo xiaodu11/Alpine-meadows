@@ -14,7 +14,7 @@ gunicorn -w 2 -b 0.0.0.0:80 yolo_web:app
 </pre>
 
 ## 效果
-![Uploading image.png…]<br>
+![image](https://github.com/user-attachments/assets/94b8b638-21d6-4c47-8d6e-032ee32c9992)<br>
 ![image](https://github.com/user-attachments/assets/f77797b9-42ec-4209-bb4a-bc084e164dea)<br>
 
 
